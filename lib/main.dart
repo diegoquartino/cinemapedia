@@ -11,7 +11,7 @@ Future<void> main() async {
   //> Para leer las variables de entorno
   await dotenv.load(fileName: ".env");
 
-  //> Envolvemos MyApp() dentro de un ProviderScope que es quien tendra la referencia 
+  //> Envolvemos MyApp() dentro de un ProviderScope que es quien tendra la referencia (ref)
   //> a todos nuestros providers de riverpod
   runApp(
     const ProviderScope(child: MyApp())
