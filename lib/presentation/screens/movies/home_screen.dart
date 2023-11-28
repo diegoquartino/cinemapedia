@@ -31,12 +31,24 @@ class _HomeViewState extends ConsumerState<_HomeView> {
   void initState() {
     super.initState();
 
+    // Inicializo o cargo las primeras peliculas
     ref.read(nowPlayingMoviesProvider.notifier).loadNextPage();
+    ref.read(popularMoviesProvider.notifier).loadNextPage();
+    ref.read(upcomingMoviesProvider.notifier).loadNextPage();
+    ref.read(topRatedMoviesProvider.notifier).loadNextPage();
   }
 
   @override
   Widget build(BuildContext context) {
-    final nowPLayingMovie = ref.watch(nowPlayingMoviesProvider);
+    
+    final initialLoading = ref.watch(initialLoadingProvider);
+
+    if (initialLoading) return const FullScreenLoader();
+
+    final nowPLayingMovies = ref.watch(nowPlayingMoviesProvider);
+    final popularMovies = ref.watch(popularMoviesProvider);
+    final upcomingMovies = ref.watch(upcomingMoviesProvider);
+    final topRatedMovies = ref.watch(topRatedMoviesProvider);
     final slideshowMovies = ref.watch(moviesSlideShowProvider);
 
     return CustomScrollView(
@@ -48,47 +60,47 @@ class _HomeViewState extends ConsumerState<_HomeView> {
             titlePadding: EdgeInsets.zero,       
           ),
         ),
-        SliverList(
+        SliverList(          
           delegate: SliverChildBuilderDelegate(
             childCount: 1,
             (context, index) {
-              return Column(
+              return Column(                
                 children: [
                   MoviesSlideshow(movies: slideshowMovies),
 
                   MovieHorizontalListview(
-                    movies: nowPLayingMovie,
+                    movies: nowPLayingMovies,
                     title: 'En cines',
                     subTitle: 'Lunes 20',
                     loadNextPage: () => ref
                         .read(nowPlayingMoviesProvider.notifier)
-                        .loadNextPage(),
+                        .loadNextPage()
                   ),
 
                   MovieHorizontalListview(
-                    movies: nowPLayingMovie,
+                    movies: upcomingMovies,
                     title: 'Proximamente',
                     subTitle: 'En este mes',
                     loadNextPage: () => ref
-                        .read(nowPlayingMoviesProvider.notifier)
+                        .read(upcomingMoviesProvider.notifier)
                         .loadNextPage(),
                   ),
 
                   MovieHorizontalListview(
-                    movies: nowPLayingMovie,
+                    movies: popularMovies,
                     title: 'Populares',
                     //subTitle: '',
                     loadNextPage: () => ref
-                        .read(nowPlayingMoviesProvider.notifier)
+                        .read(popularMoviesProvider.notifier)
                         .loadNextPage(),
                   ),
 
                   MovieHorizontalListview(
-                    movies: nowPLayingMovie,
+                    movies: topRatedMovies,
                     title: 'Mejores calificadas',
                     subTitle: 'Desde el origen',
                     loadNextPage: () => ref
-                        .read(nowPlayingMoviesProvider.notifier)
+                        .read(topRatedMoviesProvider.notifier)
                         .loadNextPage(),
                   ),
 

@@ -2,9 +2,11 @@ import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/presentation/providers/movies/movies_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+
+// Provider de las peliculas en cine
 //> Es un proveedor de un estado que notifica su cambio
-final nowPlayingMoviesProvider =
-    StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {
+final nowPlayingMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {
+  
   //> Obtengo la referencia (en otro lenguaje seria el AddresOf) a la funcion getNowPlaying
   final fetchMoreMovies = ref.watch(movieRepositoryProvider).getNowPlaying;
 
@@ -12,6 +14,31 @@ final nowPlayingMoviesProvider =
   //> que es la referencia a la funcion que obtuvimos
   return MoviesNotifier(fetchMoreMovies: fetchMoreMovies);
 });
+
+
+// Provider de las peliculas populares
+final popularMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {  
+  
+  final fetchMoreMovies = ref.watch(movieRepositoryProvider).getPopular;
+  
+  return MoviesNotifier(fetchMoreMovies: fetchMoreMovies);  
+  
+});
+
+// Provider de las peliculas populares
+final upcomingMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {  
+  
+  final fetchMoreMovies = ref.watch(movieRepositoryProvider).getUpcoming;
+  return MoviesNotifier(fetchMoreMovies: fetchMoreMovies);
+});
+
+// Provider de las peliculas populares
+final topRatedMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {  
+  
+  final fetchMoreMovies = ref.watch(movieRepositoryProvider).getTopRated;
+  return MoviesNotifier(fetchMoreMovies: fetchMoreMovies);
+});
+
 
 //> Defino un tipo de datos que en este caso es una funcion que
 //> dada una pagina 'page' devuelve una lista de 'Movie'
@@ -28,13 +55,13 @@ class MoviesNotifier extends StateNotifier<List<Movie>> {
 
   //> Al constructor le decimos que vamos a recibir un parametro
   //> con el tipo de dato 'MovieCallback'
+  //> Inicializo el estado con una lista vacia 'super([])'
   MoviesNotifier({required this.fetchMoreMovies}) : super([]);
 
   Future<void> loadNextPage() async {
+    
     if (isLoading) return;
-
     isLoading = true;
-
     currentPage++;
 
     //> utilizo la funcion de callbak, al utilizar fetchMoreMovies estoy lamando
