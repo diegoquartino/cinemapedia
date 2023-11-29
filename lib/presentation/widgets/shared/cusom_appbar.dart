@@ -23,7 +23,7 @@ class CustomAppbar extends StatelessWidget {
               const Spacer(), //> Toma todo el espacio que pueda (en este caso impulsa el IconButton a la derecha)
               IconButton(onPressed: () {
                 
-              }, icon: Icon(Icons.search))
+              }, icon: const Icon(Icons.search))
             ],
           ),
         ),

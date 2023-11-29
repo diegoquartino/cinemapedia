@@ -1,0 +1,37 @@
+import 'package:cinemapedia/domain/entities/movie.dart';
+import 'package:cinemapedia/presentation/providers/providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/* Yo quiero guardar en cache algo como esto
+   Un mapa de {id: Movie} (Movie => es un objeto de la clase Movie)
+
+  {
+    '505642': Movie(),
+    '505643': Movie(),
+    '505264': Movie(),
+    '505689': Movie(),
+    '507548': Movie(),   
+  }
+
+*/
+
+final movieInfoProvider = StateNotifierProvider<MovieMapNotifier, Map<String, Movie>>((ref) {
+  final movieRepository = ref.watch(movieRepositoryProvider);
+  return MovieMapNotifier(getMovie: movieRepository.getMovieById);
+});
+
+
+typedef GetMovieCallback = Future<Movie> Function(String movieId);
+
+class MovieMapNotifier extends StateNotifier<Map<String, Movie>> {
+  final GetMovieCallback getMovie;
+
+  MovieMapNotifier({required this.getMovie}) : super({});
+
+  Future<void> loadMovie(String movieId) async {
+    if (state[movieId] != null) return;
+    final movie = await getMovie(movieId);
+
+    state = {...state, movieId: movie};
+  }
+}
