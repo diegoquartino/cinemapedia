@@ -11,8 +11,10 @@ typedef SearchMoviesCallback = Future<List<Movie>> Function(String query);
 class SearchMovieDelegates extends SearchDelegate<Movie?> {
   /// Funcion de callback que realizará la busqueda
   final SearchMoviesCallback searchMovies;
-  final List<Movie> initialMovies;
+  List<Movie> initialMovies;
   StreamController<List<Movie>> debouncedMovies = StreamController.broadcast();
+  StreamController<bool> isLoadingStream = StreamController.broadcast();
+
   Timer? _debounceTimer;
 
   SearchMovieDelegates({
@@ -25,18 +27,21 @@ class SearchMovieDelegates extends SearchDelegate<Movie?> {
   //> cierre la pantalla de busqueda
   void clearStreams() {
     debouncedMovies.close();
+    isLoadingStream.close();
   }
 
   //> Funcion manual para el debaunce, esto lo que hace es generar un timer que dura X milisegundos
   //> sise vuelve a ingresar a la funcion antes de los 500 milisegundos y el timer esta activo
   //> lo cancela y lo vuelve a generar (en otras palabras lo "reinicia")
   void _onQueryChanged(String query) {
+    
+    isLoadingStream.add(true);
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
 
-    _debounceTimer = Timer(const Duration(milliseconds: 700), () async {
-      //> Resolvimos la insercion de elementos vacios en el 'searchMovies' del datasource 
+    _debounceTimer = Timer(const Duration(milliseconds: 600), () async {
+      //> Resolvimos la insercion de elementos vacios en el 'searchMovies' del datasource
       //> moviedb_datasource.dart
-      // if (query.isEmpty) { 
+      // if (query.isEmpty) {
       //   debouncedMovies.add([]);
       //   return;
       // }
@@ -44,51 +49,13 @@ class SearchMovieDelegates extends SearchDelegate<Movie?> {
       final movies = await searchMovies(query);
       if (!debouncedMovies.isClosed) {
         debouncedMovies.add(movies);
+        initialMovies = movies;
+        isLoadingStream.add(false);
       }
     });
   }
 
-  @override
-  String get searchFieldLabel => 'Buscar Pelicula';
-
-  //> Para las acciones, por ejemplo del boton de busqueda
-  @override
-  List<Widget>? buildActions(BuildContext context) {
-    return [
-      FadeIn(
-        animate: query.isNotEmpty,
-        duration: const Duration(milliseconds: 200),
-        child: IconButton(
-          onPressed: () => query = '',
-          icon: const Icon(Icons.clear),
-        ),
-      ),
-    ];
-  }
-
-  //> Para agrega algo al principio como un icono u otra cosa
-  @override
-  Widget? buildLeading(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        clearStreams();
-        close(context, null);        
-      },
-      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-    );
-  }
-
-  //> El resultado que va a devolver cuando el usuario de enter
-  @override
-  Widget buildResults(BuildContext context) {
-    return const Text('BuildResults');
-  }
-
-  //> Para saber que es lo que quiero hacer cuando la persona esta escribiendo
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    _onQueryChanged(query);
-
+  Widget buildResultsAndSuggestions() {
     return StreamBuilder(
       initialData: initialMovies,
       stream: debouncedMovies.stream,
@@ -99,16 +66,78 @@ class SearchMovieDelegates extends SearchDelegate<Movie?> {
           itemCount: movies.length,
           itemBuilder: (context, index) {
             return _MovieItem(
-              movie: movies[index],
-              onMovieSelected: (context, movie) {
+                movie: movies[index],
+                onMovieSelected: (context, movie) {
                   clearStreams();
                   close(context, movie);
-              }
-            );
+                });
           },
         );
       },
     );
+  }
+
+  @override
+  String get searchFieldLabel => 'Buscar Pelicula';
+
+  //> Para las acciones, por ejemplo del boton de busqueda
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      StreamBuilder(
+        initialData: false,
+        stream: isLoadingStream.stream,
+        builder: (context, snapshot) {
+          if (snapshot.data ?? false) {
+            return SpinPerfect(
+              duration: const Duration(seconds: 20),
+              spins: 10,
+              infinite: true,
+              child: IconButton(
+                onPressed: () => query = '',
+                icon: const Icon(Icons.refresh_rounded),
+              ),
+            );
+          }
+
+          return FadeIn(
+            animate: query.isNotEmpty,
+            duration: const Duration(milliseconds: 200),
+            child: IconButton(
+              onPressed: () => query = '',
+              icon: const Icon(Icons.clear),
+            ),
+          );
+        },
+      ),
+    ];
+  }
+
+  //> Para agrega algo al principio como un icono u otra cosa
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        clearStreams();
+        close(context, null);
+      },
+      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+    );
+  }
+
+  //> El resultado que va a devolver cuando el usuario de enter
+  @override
+  Widget buildResults(BuildContext context) {
+    return buildResultsAndSuggestions();
+  }
+
+  //> Para saber que es lo que quiero hacer cuando la persona esta escribiendo
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    _onQueryChanged(query);
+
+    return buildResultsAndSuggestions();
+
     // return FutureBuilder( //> se cambia por un StreamBuilder para evitar que cada cambio haga una consumicion a la api
     //   future: searchMovies(query),
     //   builder: (context, snapshot) {

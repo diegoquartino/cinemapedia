@@ -153,6 +153,7 @@ class _ActorsByMovie extends ConsumerWidget {
 
           return Container(
             padding: const EdgeInsets.all(8.0),
+            width: 135,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
