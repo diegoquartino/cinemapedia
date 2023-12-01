@@ -2,7 +2,7 @@ import 'package:cinemapedia/domain/entities/movie.dart';
 
 abstract class LocalStorageDatasource {
 
-  Future<void> toggleFavourite(Movie movie);
+  Future<void> toggleFavorite(Movie movie);
   
   Future<bool> isMovieFavorite(int movieId);
 

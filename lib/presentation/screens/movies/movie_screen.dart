@@ -202,8 +202,6 @@ final isFavoriteProvider = FutureProvider.family.autoDispose((ref, int movieId) 
   return localStorageRepository.isMovieFavorite(movieId);
 });
 
-
-
 class _CustomSliverAppbar extends ConsumerWidget {
   final Movie movie;
 
@@ -226,7 +224,11 @@ class _CustomSliverAppbar extends ConsumerWidget {
             //> si no pongo el await y toco muchas veces el boton de favorito
             //> me pasa que no siempre se cambia el icono y es porqueel invalidate se llama antes 
             //> de que termine el toogleFavorite entonces no se entera del cambio de valor
-            await ref.watch( localStorageRepositoryProvider ).toggleFavourite(movie);
+            //await ref.read( localStorageRepositoryProvider ).toggleFavorite(movie); //> Ya no llamos mas a esta funcion del local storage repository
+
+            //> ahora llamo a la funcion que quita y agrega de favoritos, del favoritesMoviesProvider
+            await ref.read( favoritesMoviesProvider.notifier ).toggleFavorite(movie);
+
             ref.invalidate(isFavoriteProvider(movie.id));
           },
           icon: isFavoriteFuture.when(
