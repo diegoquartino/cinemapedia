@@ -182,7 +182,7 @@ class _ActorsByMovie extends ConsumerWidget {
                   maxLines: 2,
                   style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade600,                      
+                      color: Colors.grey.shade600,
                       overflow: TextOverflow.ellipsis),
                 ),
               ],
@@ -194,19 +194,50 @@ class _ActorsByMovie extends ConsumerWidget {
   }
 }
 
-class _CustomSliverAppbar extends StatelessWidget {
+
+//> FutureProviderFamily<bool, int> el tipo de isFavoriteProvider, significa que va a devolver un bool 
+//> y que necesita como parametro un int
+final isFavoriteProvider = FutureProvider.family.autoDispose((ref, int movieId) {
+  final localStorageRepository = ref.watch( localStorageRepositoryProvider );
+  return localStorageRepository.isMovieFavorite(movieId);
+});
+
+
+
+class _CustomSliverAppbar extends ConsumerWidget {
   final Movie movie;
 
   const _CustomSliverAppbar({required this.movie});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    
+    final isFavoriteFuture = ref.watch(isFavoriteProvider(movie.id));
+
     final size = MediaQuery.of(context).size;
 
     return SliverAppBar(
       backgroundColor: Colors.black,
       expandedHeight: size.height * 0.7,
       foregroundColor: Colors.white,
+      actions: [
+        IconButton(
+          onPressed: () async {
+            //> si no pongo el await y toco muchas veces el boton de favorito
+            //> me pasa que no siempre se cambia el icono y es porqueel invalidate se llama antes 
+            //> de que termine el toogleFavorite entonces no se entera del cambio de valor
+            await ref.watch( localStorageRepositoryProvider ).toggleFavourite(movie);
+            ref.invalidate(isFavoriteProvider(movie.id));
+          },
+          icon: isFavoriteFuture.when(
+            loading: () => const CircularProgressIndicator(strokeWidth: 2,),
+            data: (isFavorite) => isFavorite
+            ? const Icon(Icons.favorite_rounded, color: Colors.red,)
+            : const Icon(Icons.favorite_border),
+            error: (_, __) => throw UnimplementedError(), 
+          ),
+        )
+      ],
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         title: Text(
@@ -219,39 +250,71 @@ class _CustomSliverAppbar extends StatelessWidget {
             SizedBox.expand(
               child: Image.network(
                 movie.posterPath,
-                fit: BoxFit.cover,                
+                fit: BoxFit.cover,
               ),
             ),
-            const SizedBox.expand(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
+
+             _CustomGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: const [
                       Colors.transparent,
                       Colors.black87,
                     ],
-                    stops: [0.7, 1.0],
-                  ),
-                ),
-              ),
+              stops: const [0.7, 1.0],
             ),
-            const SizedBox.expand(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    colors: [
+            
+            _CustomGradient(
+              begin: Alignment.topLeft,
+              colors: const [
                       Colors.black87,
                       Colors.transparent,
                     ],
-                    stops: [0.0, 0.2],
-                  ),
-                ),
-              ),
+              stops: const [0.0, 0.2],
             ),
+
+            _CustomGradient(
+              begin: Alignment.topRight,
+              end: Alignment.centerLeft,
+              colors: const [
+                      Colors.black54,
+                      Colors.transparent,
+                    ],
+              stops: const [0.0, 0.2],
+            ),
+
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CustomGradient extends StatelessWidget {
+  final AlignmentGeometry begin;
+  final AlignmentGeometry end;
+  final List<Color> colors;
+  final List<double> stops;
+
+  const _CustomGradient({
+    this.begin = Alignment.centerLeft,
+    this.end = Alignment.centerRight,
+    required this.colors,
+    required this.stops,
+  }): assert(colors.length == stops.length,
+            'La cantidad de colores debe ser igual a la cantidad de stops');
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: begin,
+            end: end,
+            colors: colors,
+            stops: stops,
+          ),
         ),
       ),
     );

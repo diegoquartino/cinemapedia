@@ -42,7 +42,7 @@ class CustomAppbar extends ConsumerWidget {
                       searchMovies: ref.read(searchedMoviesProvider.notifier).searchMoviesByQuery,),
                   ).then((movieResult) {
                     if (movieResult == null) return;
-                    context.go('/movie/${movieResult.id}');
+                    context.go('/home/0/movie/${movieResult.id}');
                   });
                 },
                 icon: const Icon(Icons.search),
