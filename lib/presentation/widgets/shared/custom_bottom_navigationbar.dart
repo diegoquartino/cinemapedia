@@ -28,43 +28,48 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {        
-    return NavigationBar(
-      elevation: 0,
-      selectedIndex: currentIndex,
-      onDestinationSelected: (index) => onItemTapped(context, index),
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_max_outlined),
-          label: 'Inicio',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.label_outline),
-          label: 'Categorías',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.favorite_outline),
-          label: 'Favoritos',
-        ),
-      ],
-    );
-    // return BottomNavigationBar(     
+    // return NavigationBar(
     //   elevation: 0,
-    //   currentIndex: currentIndex,
-    //   onTap: (value) => onItemTapped(context, value),
-    //   items: const [
-    //     BottomNavigationBarItem(
-    //       icon: Icon(Icons.home),
-    //       label: 'Home',
+    //   selectedIndex: currentIndex,
+    //   onDestinationSelected: (index) => onItemTapped(context, index),
+    //   destinations: const [
+    //     NavigationDestination(
+    //       icon: Icon(Icons.home_max_outlined),
+    //       label: 'Inicio',
     //     ),
-    //     BottomNavigationBarItem(
+    //     NavigationDestination(
     //       icon: Icon(Icons.label_outline),
-    //       label: 'Categorias',
+    //       label: 'Pupolares',
+
     //     ),
-    //     BottomNavigationBarItem(
+    //     NavigationDestination(
     //       icon: Icon(Icons.favorite_outline),
     //       label: 'Favoritos',
     //     ),
     //   ],
     // );
+    return BottomNavigationBar(     
+      elevation: 0,
+      currentIndex: currentIndex,
+      onTap: (value) => onItemTapped(context, value),
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          label: 'Home',
+          activeIcon: Icon(Icons.home),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.local_activity_outlined),
+          label: 'Populares',
+          activeIcon: Icon(Icons.local_activity_rounded),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.favorite_outline),
+          label: 'Favoritos',
+          activeIcon: Icon(Icons.favorite),
+
+        ),
+      ],
+    );
   }
 }

@@ -3,7 +3,7 @@ import 'package:cinemapedia/presentation/providers/movies/movies_repository_prov
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 
-// Provider de las peliculas en cine
+//* Provider de las peliculas en cine
 //> Es un proveedor de un estado que notifica su cambio
 final nowPlayingMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {
   
@@ -16,7 +16,7 @@ final nowPlayingMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movi
 });
 
 
-// Provider de las peliculas populares
+//* Provider de las peliculas populares
 final popularMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {  
   
   final fetchMoreMovies = ref.watch(movieRepositoryProvider).getPopular;
@@ -25,21 +25,30 @@ final popularMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>
   
 });
 
-// Provider de las peliculas populares
+//* Provider de las peliculas populares
 final upcomingMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {  
   
   final fetchMoreMovies = ref.watch(movieRepositoryProvider).getUpcoming;
   return MoviesNotifier(fetchMoreMovies: fetchMoreMovies);
 });
 
-// Provider de las peliculas populares
+//* Provider de las peliculas populares
 final topRatedMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref) {  
   
   final fetchMoreMovies = ref.watch(movieRepositoryProvider).getTopRated;
   return MoviesNotifier(fetchMoreMovies: fetchMoreMovies);
 });
 
+//* Provider de las peliculas similares
+final similarMoviesProvider = StateNotifierProvider<MoviesByActorNotifier, List<Movie>>((ref) {  
+  
+  final fetchMoreMovies = ref.watch(movieRepositoryProvider).getSimilars;
+  return MoviesByActorNotifier(fetchMoreMovies: fetchMoreMovies);
+});
 
+
+
+//* Notifier para peliculas
 //> Defino un tipo de datos que en este caso es una funcion que
 //> dada una pagina 'page' devuelve una lista de 'Movie'
 //> NOTA: 'typedef MovieCallback' no es una funcion sino un TIPO DE DATO!!!
@@ -58,9 +67,9 @@ class MoviesNotifier extends StateNotifier<List<Movie>> {
   //> Inicializo el estado con una lista vacia 'super([])'
   MoviesNotifier({required this.fetchMoreMovies}) : super([]);
 
-  Future<void> loadNextPage() async {
+  Future<List<Movie>> loadNextPage() async {
     
-    if (isLoading) return;
+    if (isLoading) return [];
     isLoading = true;
     currentPage++;
 
@@ -72,5 +81,35 @@ class MoviesNotifier extends StateNotifier<List<Movie>> {
     //> que contiene lo que habia en state mas lo que se obtuvo en 'movies'
     state = [...state, ...movies];
     isLoading = false;
+    return movies;
+  }
+}
+
+
+//* Notifier para peliculas similares
+typedef GetMoviesByActorCallback = Future<List<Movie>> Function(String id, {int page});
+
+class MoviesByActorNotifier extends StateNotifier<List<Movie>> {
+  
+  final GetMoviesByActorCallback fetchMoreMovies;
+  MoviesByActorNotifier({required this.fetchMoreMovies}) : super([]);
+
+  int currentPage = 0;
+  bool isLoading = false; 
+
+  Future<List<Movie>> loadNextPage(String movieId) async {
+    if (isLoading) return [];
+    isLoading = true;
+    currentPage++;
+
+    //> utilizo la funcion de callbak, al utilizar fetchMoreMovies estoy lamando
+    //> a la funcion 'getNowPlaying' ya que fetchMoreMovies es una referencia de ella
+    final List<Movie> movies = await fetchMoreMovies(movieId, page: currentPage);
+
+    //> Como state es de tipo List<Movie> modifico el state con una nueva lista
+    //> que contiene lo que habia en state mas lo que se obtuvo en 'movies'
+    state = [...state, ...movies];
+    isLoading = false;
+    return movies;
   }
 }

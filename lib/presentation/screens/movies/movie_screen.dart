@@ -1,9 +1,11 @@
+import 'package:cinemapedia/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import '../../providers/providers.dart';
 
 class MovieScreen extends ConsumerStatefulWidget {
+  
   static const name = 'movie-screen';
 
   final String movieId;
@@ -21,6 +23,7 @@ class MovieScreenState extends ConsumerState<MovieScreen> {
 
     ref.read(movieInfoProvider.notifier).loadMovie(widget.movieId);
     ref.read(actorsByMovieProvider.notifier).loadActors(widget.movieId);
+    ref.read(similarMoviesProvider.notifier).loadNextPage(widget.movieId);
   }
 
   @override
@@ -90,7 +93,15 @@ class _MovieDetails extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('#${movie.id}', style: textStyle.labelSmall),
+                    movie.releaseDate != null
+                        ? Text('Año: ${movie.releaseDate!.year.toString()}')
+                        : const SizedBox(),
                     Text(movie.title, style: textStyle.titleLarge),
+                    movie.originalTitle.isNotEmpty &&
+                            movie.title.compareTo(movie.originalTitle) != 0
+                        ? Text(movie.originalTitle,
+                            style: textStyle.titleMedium)
+                        : const SizedBox(),
                     Text(movie.overview),
                   ],
                 ),
@@ -102,27 +113,57 @@ class _MovieDetails extends StatelessWidget {
         // Generos de la pelicula
         Padding(
           padding: const EdgeInsets.all(8),
-          child: Wrap(
-            children: [
-              ...movie.genreIds.map(
-                (gender) => Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  child: Chip(
-                    label: Text(gender),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
+          child: SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              alignment: WrapAlignment.center,
+              children: [
+                ...movie.genreIds.map(
+                  (gender) => Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    child: Chip(
+                      label: Text(gender),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
         // Actores de la pelicula
         _ActorsByMovie(movieId: movie.id.toString()),
 
+        const SizedBox(height: 30),
+
+        _SimilarMovies(movieId: movie.id.toString()),
+
         const SizedBox(height: 30)
       ],
+    );
+  }
+}
+
+class _SimilarMovies extends ConsumerWidget {
+  final String movieId;
+  const _SimilarMovies({required this.movieId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    
+    final similarMovies = ref.watch(similarMoviesProvider);    
+
+    if (similarMovies.isEmpty) {
+      return const CircularProgressIndicator(strokeWidth: 2);
+    }
+
+    return MovieHorizontalListview(
+      movies: similarMovies,
+      title: 'Similares',
+      loadNextPage:()=> ref.read(similarMoviesProvider.notifier).loadNextPage(movieId)
     );
   }
 }
@@ -194,11 +235,11 @@ class _ActorsByMovie extends ConsumerWidget {
   }
 }
 
-
-//> FutureProviderFamily<bool, int> el tipo de isFavoriteProvider, significa que va a devolver un bool 
+//> FutureProviderFamily<bool, int> el tipo de isFavoriteProvider, significa que va a devolver un bool
 //> y que necesita como parametro un int
-final isFavoriteProvider = FutureProvider.family.autoDispose((ref, int movieId) {
-  final localStorageRepository = ref.watch( localStorageRepositoryProvider );
+final isFavoriteProvider =
+    FutureProvider.family.autoDispose((ref, int movieId) {
+  final localStorageRepository = ref.watch(localStorageRepositoryProvider);
   return localStorageRepository.isMovieFavorite(movieId);
 });
 
@@ -209,7 +250,6 @@ class _CustomSliverAppbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
     final isFavoriteFuture = ref.watch(isFavoriteProvider(movie.id));
 
     final size = MediaQuery.of(context).size;
@@ -222,30 +262,41 @@ class _CustomSliverAppbar extends ConsumerWidget {
         IconButton(
           onPressed: () async {
             //> si no pongo el await y toco muchas veces el boton de favorito
-            //> me pasa que no siempre se cambia el icono y es porqueel invalidate se llama antes 
+            //> me pasa que no siempre se cambia el icono y es porqueel invalidate se llama antes
             //> de que termine el toogleFavorite entonces no se entera del cambio de valor
             //await ref.read( localStorageRepositoryProvider ).toggleFavorite(movie); //> Ya no llamos mas a esta funcion del local storage repository
 
             //> ahora llamo a la funcion que quita y agrega de favoritos, del favoritesMoviesProvider
-            await ref.read( favoritesMoviesProvider.notifier ).toggleFavorite(movie);
+            await ref
+                .read(favoritesMoviesProvider.notifier)
+                .toggleFavorite(movie);
 
             ref.invalidate(isFavoriteProvider(movie.id));
           },
           icon: isFavoriteFuture.when(
-            loading: () => const CircularProgressIndicator(strokeWidth: 2,),
+            loading: () => const CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
             data: (isFavorite) => isFavorite
-            ? const Icon(Icons.favorite_rounded, color: Colors.red,)
-            : const Icon(Icons.favorite_border),
-            error: (_, __) => throw UnimplementedError(), 
+                ? const Icon(
+                    Icons.favorite_rounded,
+                    color: Colors.red,
+                  )
+                : const Icon(Icons.favorite_border),
+            error: (_, __) => throw UnimplementedError(),
           ),
         )
       ],
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        title: Text(
-          movie.title,
-          style: const TextStyle(fontSize: 20),
-          textAlign: TextAlign.start,
+        titlePadding: const EdgeInsets.only(bottom: 0),
+        title: _CustomGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: const [
+            Colors.transparent,
+            Colors.black87,
+          ],
+          stops: const [0.7, 1.0],
         ),
         background: Stack(
           children: [
@@ -255,36 +306,32 @@ class _CustomSliverAppbar extends ConsumerWidget {
                 fit: BoxFit.cover,
               ),
             ),
-
-             _CustomGradient(
+            _CustomGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: const [
-                      Colors.transparent,
-                      Colors.black87,
-                    ],
+                Colors.transparent,
+                Colors.black87,
+              ],
               stops: const [0.7, 1.0],
             ),
-            
             _CustomGradient(
               begin: Alignment.topLeft,
               colors: const [
-                      Colors.black87,
-                      Colors.transparent,
-                    ],
+                Colors.black87,
+                Colors.transparent,
+              ],
               stops: const [0.0, 0.2],
             ),
-
             _CustomGradient(
               begin: Alignment.topRight,
               end: Alignment.centerLeft,
               colors: const [
-                      Colors.black54,
-                      Colors.transparent,
-                    ],
+                Colors.black54,
+                Colors.transparent,
+              ],
               stops: const [0.0, 0.2],
             ),
-
           ],
         ),
       ),
@@ -303,7 +350,7 @@ class _CustomGradient extends StatelessWidget {
     this.end = Alignment.centerRight,
     required this.colors,
     required this.stops,
-  }): assert(colors.length == stops.length,
+  }) : assert(colors.length == stops.length,
             'La cantidad de colores debe ser igual a la cantidad de stops');
 
   @override

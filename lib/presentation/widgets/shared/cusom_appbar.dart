@@ -47,6 +47,9 @@ class CustomAppbar extends ConsumerWidget {
                 },
                 icon: const Icon(Icons.search),
               ),
+              IconButton(onPressed: () {
+                //TODO: Hacer funcionalidad para personalizacion                
+              }, icon: const Icon(Icons.settings_outlined),),
             ],
           ),
         ),

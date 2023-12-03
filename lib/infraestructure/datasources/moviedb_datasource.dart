@@ -1,5 +1,5 @@
-import 'package:cinemapedia/infraestructure/models/moviedb/movie_details.dart';
 import 'package:dio/dio.dart';
+import 'package:cinemapedia/infraestructure/models/moviedb/movie_details.dart';
 import 'package:cinemapedia/config/constants/environment.dart';
 import 'package:cinemapedia/infraestructure/mappers/movie_mapper.dart';
 import 'package:cinemapedia/infraestructure/models/moviedb/movie_response.dart';
@@ -16,6 +16,7 @@ class MoviedbDatasource extends MoviesDatasource {
         'api_key': Environment.theMovieDBKey,
         'language': 'es-UY',
       },
+      validateStatus: (status) => true,
     ),
   );
 
@@ -99,6 +100,17 @@ class MoviedbDatasource extends MoviesDatasource {
 
     return _jsonToMovies(response.data);
 
+  }
+  
+  @override
+  Future<List<Movie>> getSimilars(String id, {int page = 1}) async {
+    
+    if (id.isEmpty) return [];
+
+    final response = await dio.get('/movie/$id/similar', queryParameters: {'page': page});
+    if (response.statusCode != 200) return [];   
+
+    return _jsonToMovies(response.data);
   }
   
 }
