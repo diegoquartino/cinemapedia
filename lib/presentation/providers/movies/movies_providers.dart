@@ -86,9 +86,10 @@ class MoviesNotifier extends StateNotifier<List<Movie>> {
 }
 
 
-//* Notifier para peliculas similares
+//* Funcion de callback para peliculas similares
 typedef GetSimilarMoviesCallback = Future<List<Movie>> Function(String id, {int page});
 
+//* Notifier para peliculas similares
 class SimilarMoviesNotifier extends StateNotifier<List<Movie>> {
   
   final GetSimilarMoviesCallback fetchMoreMovies;
@@ -101,13 +102,9 @@ class SimilarMoviesNotifier extends StateNotifier<List<Movie>> {
     if (isLoading) return [];
     isLoading = true;
     currentPage++;
-
-    //> utilizo la funcion de callbak, al utilizar fetchMoreMovies estoy lamando
-    //> a la funcion 'getNowPlaying' ya que fetchMoreMovies es una referencia de ella
+    
     final List<Movie> movies = await fetchMoreMovies(movieId, page: currentPage);
-
-    //> Como state es de tipo List<Movie> modifico el state con una nueva lista
-    //> que contiene lo que habia en state mas lo que se obtuvo en 'movies'
+    
     state = [...state, ...movies];
     isLoading = false;
     return movies;
