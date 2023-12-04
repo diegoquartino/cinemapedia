@@ -1,3 +1,4 @@
+import 'package:cinemapedia/config/helpers/humman_formats.dart';
 import 'package:cinemapedia/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,7 +6,6 @@ import 'package:cinemapedia/domain/entities/movie.dart';
 import '../../providers/providers.dart';
 
 class MovieScreen extends ConsumerStatefulWidget {
-  
   static const name = 'movie-screen';
 
   final String movieId;
@@ -31,13 +31,20 @@ class MovieScreenState extends ConsumerState<MovieScreen> {
     final Movie? movie = ref.watch(movieInfoProvider)[widget.movieId];
 
     if (movie == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-          ),
-        ),
-      );
+      return Scaffold(
+          body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/loaders/bottle-loader.gif'),
+        ],
+      )
+          // Center(
+          //   child: CircularProgressIndicator(
+          //     strokeWidth: 2,
+          //   ),
+          // ),
+          );
     }
 
     return Scaffold(
@@ -76,12 +83,35 @@ class _MovieDetails extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Imagen
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  movie.posterPath,
+              Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(
+                      movie.posterPath,
+                      width: size.width * 0.3,
+                    ),
+                  ),
+                  SizedBox(
+                  //> Envolvemos en SizedBox para que tenga un ancho fijo y funcione el spacer dentro del Row
                   width: size.width * 0.3,
-                ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.star_half_outlined,
+                          color: Colors.yellow.shade800),
+                      const SizedBox(width: 3),
+                      Text('${movie.voteAverage}',
+                          style: textStyle.bodyMedium
+                              ?.copyWith(color: Colors.yellow.shade800)),
+                      const Spacer(),
+                      Text(
+                        HumanFormats.number(movie.popularity),
+                        style: textStyle.bodySmall,
+                      )
+                    ],
+                  ),
+                )
+                ],
               ),
 
               const SizedBox(width: 10),
@@ -135,7 +165,7 @@ class _MovieDetails extends StatelessWidget {
         ),
 
         // Actores de la pelicula
-        _ActorsByMovie(movieId: movie.id.toString()),
+        ActorsByMovie(movieId: movie.id.toString()),
 
         const SizedBox(height: 30),
 
@@ -154,86 +184,21 @@ class _SimilarMovies extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     
-    final similarMovies = ref.watch(similarMoviesProvider);    
+    final similarMovies = ref.watch(similarMoviesProvider);
 
     if (similarMovies.isEmpty) {
       return const CircularProgressIndicator(strokeWidth: 2);
     }
 
     return MovieHorizontalListview(
-      movies: similarMovies,
-      title: 'Similares',
-      loadNextPage:()=> ref.read(similarMoviesProvider.notifier).loadNextPage(movieId)
-    );
+        movies: similarMovies,
+        title: 'Similares',
+        loadNextPage: () =>
+            ref.read(similarMoviesProvider.notifier).loadNextPage(movieId));
   }
 }
 
-class _ActorsByMovie extends ConsumerWidget {
-  final String movieId;
 
-  const _ActorsByMovie({required this.movieId});
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final actorsByMovie = ref.watch(actorsByMovieProvider);
-
-    if (actorsByMovie[movieId] == null) {
-      return const CircularProgressIndicator(strokeWidth: 2);
-    }
-
-    final actors = actorsByMovie[movieId]!;
-
-    return SizedBox(
-      height: 300,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: actors.length,
-        itemBuilder: (context, index) {
-          final actor = actors[index];
-
-          return Container(
-            padding: const EdgeInsets.all(8.0),
-            width: 135,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Actor foto
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    actor.profilePath,
-                    height: 180,
-                    width: 135,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-
-                // Nombre
-                const SizedBox(height: 5),
-                Text(
-                  actor.name,
-                  maxLines: 2,
-                  style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      overflow: TextOverflow.ellipsis),
-                ),
-                Text(
-                  actor.character ?? '',
-                  maxLines: 2,
-                  style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                      overflow: TextOverflow.ellipsis),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
 
 //> FutureProviderFamily<bool, int> el tipo de isFavoriteProvider, significa que va a devolver un bool
 //> y que necesita como parametro un int

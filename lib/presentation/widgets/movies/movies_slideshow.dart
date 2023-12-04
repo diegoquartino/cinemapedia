@@ -67,17 +67,10 @@ class _Slide extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(
-                  movie.backdropPath,
+                FadeInImage(
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress != null) {
-                      return const DecoratedBox(
-                        decoration: BoxDecoration(color: Colors.black12),
-                      );
-                    }
-                    return FadeIn(child: child);
-                  },
+                  placeholder: const AssetImage('assets/loaders/bottle-loader.gif'),
+                  image: NetworkImage(movie.backdropPath),
                 ),                
                 _CustomGradient(
                   begin: Alignment.topCenter,

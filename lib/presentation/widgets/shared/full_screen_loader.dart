@@ -20,7 +20,7 @@ class FullScreenLoader extends StatelessWidget {
         return messages[step];
       }).take(messages.length);
     }
-
+      
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

@@ -11,8 +11,8 @@ class CustomAppbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
-    final titleStyle = Theme.of(context).textTheme.titleMedium;
+    //final colors = Theme.of(context).colorScheme;
+    final titleStyle = Theme.of(context).textTheme.titleLarge;
 
     return SafeArea(
       bottom: false,
@@ -22,24 +22,47 @@ class CustomAppbar extends ConsumerWidget {
           width: double.infinity,
           child: Row(
             children: [
-              Icon(Icons.movie_outlined, color: colors.primary),
+              //Icon(Icons.movie_outlined, color: colors.primary),
+              Image.asset(
+                'assets/film.png',
+                width: 23,
+                height: 23,
+              ),
               const SizedBox(width: 5),
-              Text(
-                'Cinemapedia',
-                style: titleStyle,
+              ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return const RadialGradient(
+                    center: Alignment.topLeft,
+                    radius: 3.0,
+                    colors: <Color>[
+                      Colors.cyan,
+                      Color.fromARGB(255, 170, 94, 251),                      
+                      Color.fromARGB(255, 116, 59, 170),
+                    ],
+                    tileMode: TileMode.clamp,
+                  ).createShader(bounds);
+                },
+                child: Text(
+                  'Cinemapedia',
+                  style: titleStyle,                  
+                ),
               ),
               const Spacer(), //> Toma todo el espacio que pueda (en este caso impulsa el IconButton a la derecha)
               IconButton(
+                //iconSize: 18,
                 onPressed: () {
                   final searchMovies = ref.read(searchedMoviesProvider);
                   final searchQuery = ref.read(searchQueryProvider);
-                  
+
                   showSearch<Movie?>(
                     query: searchQuery,
                     context: context,
                     delegate: SearchMovieDelegates(
                       initialMovies: searchMovies,
-                      searchMovies: ref.read(searchedMoviesProvider.notifier).searchMoviesByQuery,),
+                      searchMovies: ref
+                          .read(searchedMoviesProvider.notifier)
+                          .searchMoviesByQuery,
+                    ),
                   ).then((movieResult) {
                     if (movieResult == null) return;
                     context.go('/home/0/movie/${movieResult.id}');
@@ -47,9 +70,13 @@ class CustomAppbar extends ConsumerWidget {
                 },
                 icon: const Icon(Icons.search),
               ),
-              IconButton(onPressed: () {
-                //TODO: Hacer funcionalidad para personalizacion                
-              }, icon: const Icon(Icons.settings_outlined),),
+              IconButton(
+                //iconSize: 18,
+                onPressed: () {
+                  //TODO: Hacer funcionalidad para personalizacion
+                },
+                icon: const Icon(Icons.settings_outlined),
+              ),
             ],
           ),
         ),

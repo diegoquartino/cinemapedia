@@ -40,10 +40,10 @@ final topRatedMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>
 });
 
 //* Provider de las peliculas similares
-final similarMoviesProvider = StateNotifierProvider<MoviesByActorNotifier, List<Movie>>((ref) {  
+final similarMoviesProvider = StateNotifierProvider<SimilarMoviesNotifier, List<Movie>>((ref) {  
   
   final fetchMoreMovies = ref.watch(movieRepositoryProvider).getSimilars;
-  return MoviesByActorNotifier(fetchMoreMovies: fetchMoreMovies);
+  return SimilarMoviesNotifier(fetchMoreMovies: fetchMoreMovies);
 });
 
 
@@ -87,12 +87,12 @@ class MoviesNotifier extends StateNotifier<List<Movie>> {
 
 
 //* Notifier para peliculas similares
-typedef GetMoviesByActorCallback = Future<List<Movie>> Function(String id, {int page});
+typedef GetSimilarMoviesCallback = Future<List<Movie>> Function(String id, {int page});
 
-class MoviesByActorNotifier extends StateNotifier<List<Movie>> {
+class SimilarMoviesNotifier extends StateNotifier<List<Movie>> {
   
-  final GetMoviesByActorCallback fetchMoreMovies;
-  MoviesByActorNotifier({required this.fetchMoreMovies}) : super([]);
+  final GetSimilarMoviesCallback fetchMoreMovies;
+  SimilarMoviesNotifier({required this.fetchMoreMovies}) : super([]);
 
   int currentPage = 0;
   bool isLoading = false; 

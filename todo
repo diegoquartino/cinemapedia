@@ -1,16 +1,16 @@
 TODO: Horizontal view de las peliculas similares
-# Nuevo metodo en el datasource
-# Nueva implementacion en el datasource
-# Nuevo metodo en el repositorio
-# Nueva implementacion en el repositorio
-# Nuevo provider dentro de movies_providers.dart
+# [x] Nuevo metodo en el datasource
+# [x] Nueva implementacion en el datasource
+# [x] Nuevo metodo en el repositorio
+# [x] Nueva implementacion en el repositorio
+# [x] Nuevo provider dentro de movies_providers.dart
 
 
 TODO: Video trailer 
-# Ver como lo hizo el profesor porque uso un plugin
+# [] Ver como lo hizo el profesor porque uso un plugin
 
 
 TODO: Clickear en un actor y ver todas sus peliculas
-# crear 
+# [] Crear 
 # 
 # 

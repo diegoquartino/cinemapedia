@@ -17,24 +17,14 @@ class MoviePosterLink extends StatelessWidget {
         child: SizedBox(
           height: 250,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.network(
-              movie.posterPath,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress != null) {
-                  return const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 3),
-                    ),
-                  );
-                }
-    
-                return Image.network(movie.posterPath);
-              },
-            ),
+          borderRadius: BorderRadius.circular(20),
+          child: FadeInImage(
+            height: 180,
+            fit: BoxFit.cover,
+            placeholder: const AssetImage('assets/loaders/bottle-loader.gif'),
+            image: NetworkImage(movie.posterPath),
           ),
+        ),
         ),
       ),
     );
